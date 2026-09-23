@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive atlas of mathematical models for calcium homeostasis and bone remodeling.">
+  <meta name="author" content="azelys/calcium contributors">
+  <meta name="copyright" content="Copyright 2026 azelys/calcium contributors">
+  <meta name="source" content="https://github.com/azelys/calcium">
+  <meta property="og:site_name" content="azelys/calcium — Calcium–Bone Modeling Atlas">
+  <!-- Canonical provenance: https://github.com/azelys/calcium -->
+  <title>Calcium–Bone Modeling Atlas</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #5d6b78;
+      --paper: #f7f8f5;
+      --panel: #ffffff;
+      --line: #d8dfdc;
+      --soft: #edf2ef;
+      --navy: #17324d;
+      --teal: #087f8c;
+      --teal-soft: #dff2f1;
+      --coral: #c65d4d;
+      --coral-soft: #fae7e2;
+      --gold: #a27625;
+      --gold-soft: #f8efd7;
+      --violet: #6a5795;
+      --violet-soft: #eee9f8;
+      --green: #287957;
+      --green-soft: #e3f2e9;
+      --shadow: 0 16px 42px rgba(23, 50, 77, 0.09);
+      --radius: 18px;
+      --serif: Georgia, 'Times New Roman', serif;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(8,127,140,.10), transparent 34rem),
+        radial-gradient(circle at 90% 12%, rgba(198,93,77,.08), transparent 30rem),
+        var(--paper);
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+
+    a { color: var(--teal); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(8,127,140,.38);
+      outline-offset: 3px;
+    }
+
+    .shell { width: min(1240px, calc(100% - 36px)); margin: 0 auto; }
+    .site-header { padding: 28px 0 12px; }
+    .eyebrow {
+      color: var(--teal);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3 { margin: 0; line-height: 1.12; letter-spacing: -.025em; }
+    h1 { max-width: 850px; font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4.8rem); font-weight: 600; }
+    h2 { font-family: var(--serif); font-size: clamp(1.7rem, 3vw, 2.55rem); font-weight: 600; }
+    h3 { font-size: 1.05rem; }
+    p { margin: 0; }
+    .lead { max-width: 800px; margin-top: 18px; color: var(--muted); font-size: clamp(1rem, 1.7vw, 1.18rem); }
+    .header-row { display: flex; gap: 24px; justify-content: space-between; align-items: end; }
+    .repo-link { white-space: nowrap; font-size: .9rem; font-weight: 700; text-decoration: none; }
+
+    .hero { padding: 26px 0 30px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 30px; }
+    .stat {
+      padding: 18px 20px;
+      background: rgba(255,255,255,.76);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(23,50,77,.04);
+    }
+    .stat strong { display: block; color: var(--navy); font-size: 1.85rem; line-height: 1; }
+    .stat span { display: block; margin-top: 7px; color: var(--muted); font-size: .83rem; }
+
+    .section { padding: 64px 0 10px; scroll-margin-top: 22px; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 22px; }
+    .section-heading p { max-width: 650px; color: var(--muted); }
+    .micro { color: var(--muted); font-size: .85rem; }
+
+    .physio-wrap { padding: 22px; background: rgba(255,255,255,.72); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); }
+    .physio-intro { display: flex; justify-content: space-between; gap: 22px; align-items: start; margin-bottom: 16px; }
+    .physio-intro p { max-width: 750px; color: var(--muted); }
+    .diagram {
+      position: relative;
+      overflow: hidden;
+      min-height: 470px;
+      border: 1px solid #d9e5e0;
+      border-radius: 18px;
+      background:
+        linear-gradient(rgba(216,223,220,.34) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(216,223,220,.34) 1px, transparent 1px),
+        #fbfcfa;
+      background-size: 42px 42px;
+    }
+    .diagram svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .diagram path { fill: none; stroke: #9bb5b0; stroke-width: 2.4; stroke-linecap: round; marker-end: url(#arrow); }
+    .diagram .feedback { stroke: #c68c72; stroke-dasharray: 8 7; }
+    .map-node {
+      position: absolute;
+      z-index: 2;
+      transform: translate(-50%, -50%);
+      width: clamp(112px, 15vw, 176px);
+      min-height: 66px;
+      padding: 10px 11px;
+      color: var(--navy);
+      text-align: left;
+      background: rgba(255,255,255,.95);
+      border: 1px solid #b8cbc6;
+      border-radius: 13px;
+      box-shadow: 0 8px 20px rgba(23,50,77,.08);
+    }
+    .map-node:hover, .map-node.is-active { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(8,127,140,.12), 0 10px 24px rgba(23,50,77,.12); }
+    .map-node strong { display: block; font-size: .88rem; line-height: 1.15; }
+    .map-node span { display: block; margin-top: 4px; color: var(--muted); font-size: .72rem; line-height: 1.25; }
+    .n-gut { left: 11%; top: 47%; }
+    .n-para { left: 29%; top: 17%; }
+    .n-kidney { left: 29%; top: 78%; }
+    .n-plasma { left: 50%; top: 47%; }
+    .n-marrow { left: 71%; top: 23%; }
+    .n-matrix { left: 71%; top: 75%; }
+    .n-output { left: 91%; top: 47%; }
+    .diagram-caption { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 13px; color: var(--muted); font-size: .8rem; }
+    .legend-dot { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 50%; background: var(--teal); }
+    .legend-dot.feedback { background: var(--coral); }
+
+    .controls { display: grid; grid-template-columns: minmax(230px, 1.8fr) repeat(2, minmax(170px, 1fr)) auto; gap: 12px; align-items: end; margin: 22px 0; }
+    .field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: .77rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    input, select {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px 12px;
+      color: var(--ink);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .ghost {
+      min-height: 44px;
+      padding: 9px 14px;
+      color: var(--navy);
+      background: transparent;
+      border: 1px solid #aec3bd;
+      border-radius: 10px;
+      font-weight: 750;
+    }
+    .ghost:hover { background: var(--teal-soft); border-color: var(--teal); }
+
+    .family-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .family-button {
+      padding: 7px 11px;
+      color: var(--muted);
+      background: rgba(255,255,255,.58);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 750;
+    }
+    .family-button:hover, .family-button.is-active { color: var(--navy); background: var(--teal-soft); border-color: var(--teal); }
+    .model-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 13px; }
+    .model-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 208px;
+      padding: 17px;
+      color: var(--ink);
+      text-align: left;
+      background: rgba(255,255,255,.87);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--teal);
+      border-radius: 15px;
+      box-shadow: 0 7px 22px rgba(23,50,77,.045);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .model-card:hover, .model-card.is-selected { transform: translateY(-2px); border-color: var(--teal); box-shadow: 0 13px 28px rgba(23,50,77,.12); }
+    .model-card[data-family="cell"] { border-top-color: var(--coral); }
+    .model-card[data-family="integrated"] { border-top-color: var(--gold); }
+    .model-card[data-family="spatial"] { border-top-color: var(--violet); }
+    .model-card[data-family="clinical"] { border-top-color: var(--green); }
+    .card-top { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+    .card-year { color: var(--muted); font-size: .78rem; font-weight: 750; }
+    .card-family { margin-top: 7px; color: var(--muted); font-size: .73rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+    .card-question { margin-top: 12px; color: #3f4c57; font-size: .88rem; line-height: 1.42; }
+    .card-footer { display: flex; justify-content: space-between; gap: 8px; align-items: end; margin-top: auto; padding-top: 16px; }
+    .tag { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; color: var(--muted); background: var(--soft); font-size: .72rem; font-weight: 750; }
+    .tag.ready { color: var(--green); background: var(--green-soft); }
+    .tag.target { color: var(--gold); background: var(--gold-soft); }
+    .arrow-label { color: var(--teal); font-size: .8rem; font-weight: 800; }
+    .empty { padding: 28px; color: var(--muted); background: rgba(255,255,255,.7); border: 1px dashed var(--line); border-radius: 14px; }
+
+    .detail-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); gap: 18px; align-items: start; }
+    .detail-panel, .coverage-panel { padding: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); }
+    .detail-kicker { color: var(--teal); font-size: .78rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .detail-title { margin-top: 7px; font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.8rem); }
+    .detail-summary { margin-top: 12px; color: var(--muted); font-size: 1.02rem; }
+    .detail-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 17px; }
+    .detail-columns { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 21px; margin-top: 25px; }
+    .detail-columns h3 { margin-bottom: 8px; color: var(--navy); font-size: .93rem; }
+    ul { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 6px; }
+    .detail-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .detail-links a { color: var(--teal); font-size: .85rem; font-weight: 800; }
+    .coverage-panel h3 { margin-bottom: 15px; }
+    .coverage-list { display: grid; gap: 10px; }
+    .coverage-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding-bottom: 9px; border-bottom: 1px solid #edf0ee; }
+    .coverage-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .coverage-name { color: #40505b; font-size: .84rem; }
+    .coverage-value { min-width: 72px; padding: 4px 8px; text-align: center; border-radius: 999px; font-size: .72rem; font-weight: 850; }
+    .full { color: var(--green); background: var(--green-soft); }
+    .partial { color: var(--gold); background: var(--gold-soft); }
+    .none { color: var(--muted); background: var(--soft); }
+
+    .compare-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+    table { width: 100%; min-width: 930px; border-collapse: collapse; font-size: .82rem; }
+    th, td { padding: 12px 13px; text-align: left; vertical-align: middle; border-bottom: 1px solid #e9eeeb; }
+    th { color: var(--muted); background: #f2f6f3; font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #f5faf8; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .matrix-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; }
+    .matrix-dot.full { background: var(--green); }
+    .matrix-dot.partial { background: var(--gold); }
+    .matrix-dot.none { background: #cbd4d1; }
+    .matrix-key { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; color: var(--muted); font-size: .78rem; }
+
+    .glossary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 11px; }
+    .glossary div { padding: 14px; background: rgba(255,255,255,.7); border: 1px solid var(--line); border-radius: 13px; }
+    .glossary dt { color: var(--navy); font-weight: 850; }
+    .glossary dd { margin: 4px 0 0; color: var(--muted); font-size: .82rem; }
+    footer { margin-top: 60px; padding: 28px 0 50px; color: var(--muted); border-top: 1px solid var(--line); font-size: .82rem; }
+    footer p + p { margin-top: 6px; }
+
+    @media (max-width: 980px) {
+      .model-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .controls { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .controls .field:first-child { grid-column: 1 / -1; }
+      .controls .ghost { align-self: end; }
+      .detail-layout { grid-template-columns: 1fr; }
+      .glossary { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 650px) {
+      .shell { width: min(100% - 24px, 1240px); }
+      .header-row, .section-heading, .physio-intro { display: block; }
+      .repo-link { display: inline-block; margin-top: 14px; }
+      .stat-grid, .model-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+      .stat { padding: 14px; }
+      .stat strong { font-size: 1.45rem; }
+      .diagram { min-height: 580px; }
+      .map-node { width: 118px; min-height: 60px; padding: 8px; }
+      .n-gut { left: 18%; top: 39%; }
+      .n-para { left: 50%; top: 11%; }
+      .n-kidney { left: 50%; top: 67%; }
+      .n-plasma { left: 50%; top: 39%; }
+      .n-marrow { left: 82%; top: 23%; }
+      .n-matrix { left: 82%; top: 54%; }
+      .n-output { left: 82%; top: 85%; }
+      .diagram path { stroke-width: 2; }
+      .controls { grid-template-columns: 1fr; }
+      .controls .field:first-child { grid-column: auto; }
+      .detail-columns { grid-template-columns: 1fr; }
+      .glossary { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 410px) {
+      .stat-grid, .model-grid, .glossary { grid-template-columns: 1fr; }
+      .diagram { min-height: 650px; }
+      .n-gut { left: 27%; top: 38%; }
+      .n-para { left: 50%; top: 10%; }
+      .n-kidney { left: 50%; top: 66%; }
+      .n-plasma { left: 50%; top: 38%; }
+      .n-marrow, .n-matrix, .n-output { left: 79%; }
+      .n-marrow { top: 23%; }
+      .n-matrix { top: 53%; }
+      .n-output { top: 84%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header shell">
+    <div class="header-row">
+      <div>
+        <div class="eyebrow">Calcium homeostasis × bone remodeling</div>
+        <h1>An atlas of the models behind bone physiology</h1>
+        <p class="lead">A clinically oriented guide to what each mathematical model represents, what it leaves out, and which physiological questions it can answer.</p>
+      </div>
+      <a class="repo-link" href="https://github.com/azelys/calcium" target="_blank" rel="noreferrer">View repository ↗</a>
+    </div>
+    <div class="stat-grid" aria-label="Atlas summary">
+      <div class="stat"><strong id="model-count">20</strong><span>literature model entries</span></div>
+      <div class="stat"><strong>9</strong><span>Julia components · 10 atlas entries covered</span></div>
+      <div class="stat"><strong>4</strong><span>physiological scales</span></div>
+      <div class="stat"><strong>1</strong><span>integrated research direction</span></div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="section" id="physiology">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Start with physiology</div>
+          <h2>Where each model sits in the body</h2>
+        </div>
+        <p>Click a compartment to show models that explicitly represent it. Solid arrows are mineral or endocrine flows; dashed arrows are feedback signals.</p>
+      </div>
+      <div class="physio-wrap">
+        <div class="physio-intro">
+          <p><strong>The clinical frame:</strong> PTH, calcitriol, and FGF23 stabilize plasma calcium and phosphate through the gut and kidney. Bone is both a mineral reservoir and a living tissue: osteoclasts resorb matrix, osteoblasts form it, and osteocytes coordinate local adaptation.</p>
+          <span class="micro">Select a node to filter the model atlas.</span>
+        </div>
+        <div class="diagram" role="img" aria-label="Physiological diagram linking gut, parathyroid, kidney, plasma calcium and phosphate, bone marrow, bone matrix, and clinical outputs.">
+          <svg viewBox="0 0 1000 470" preserveAspectRatio="none" aria-hidden="true">
+            <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#9bb5b0"></path></marker></defs>
+            <path d="M145 220 C225 220, 315 220, 430 220"></path>
+            <path d="M300 83 C360 105, 400 150, 450 190"></path>
+            <path d="M300 365 C360 330, 395 290, 450 250"></path>
+            <path d="M550 205 C620 155, 650 120, 700 110"></path>
+            <path d="M550 255 C620 310, 650 350, 700 355"></path>
+            <path d="M770 110 C835 145, 850 180, 885 205"></path>
+            <path d="M770 355 C835 325, 850 290, 885 260"></path>
+            <path class="feedback" d="M710 145 C620 75, 540 65, 455 155"></path>
+            <path class="feedback" d="M705 385 C625 430, 555 425, 480 285"></path>
+          </svg>
+          <button class="map-node n-gut" type="button" data-coverage="mineral" aria-label="Filter by gut and dietary mineral entry"><strong>Gut / diet</strong><span>Calcium, phosphate, vitamin D entry</span></button>
+          <button class="map-node n-para" type="button" data-coverage="hormones" aria-label="Filter by parathyroid hormone"><strong>Parathyroid</strong><span>PTH sensing and secretion</span></button>
+          <button class="map-node n-kidney" type="button" data-coverage="kidney" aria-label="Filter by kidney handling"><strong>Kidney</strong><span>Reabsorption, phosphate excretion, calcitriol</span></button>
+          <button class="map-node n-plasma" type="button" data-coverage="mineral" aria-label="Filter by plasma calcium and phosphate"><strong>Plasma Ca / P</strong><span>The regulated clinical compartment</span></button>
+          <button class="map-node n-marrow" type="button" data-coverage="cells" aria-label="Filter by bone marrow bone cells"><strong>Bone marrow / BMU</strong><span>OB, OC, precursors, osteocytes</span></button>
+          <button class="map-node n-matrix" type="button" data-coverage="matrix" aria-label="Filter by bone matrix and mineralization"><strong>Bone matrix</strong><span>Resorption, formation, mineralization</span></button>
+          <button class="map-node n-output" type="button" data-coverage="outcomes" aria-label="Filter by biomarkers and clinical outputs"><strong>Clinical outputs</strong><span>Ca, P, PTH, turnover markers, BMD</span></button>
+        </div>
+        <div class="diagram-caption"><span><i class="legend-dot"></i>direct physiological or model flow</span><span><i class="legend-dot feedback"></i>feedback / signaling connection</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="models">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Explore the atlas</div>
+          <h2>Choose a model to see its special role</h2>
+        </div>
+        <p id="result-count" class="micro" aria-live="polite">20 models shown</p>
+      </div>
+      <div class="controls" aria-label="Model filters">
+        <div class="field"><label for="search">Search</label><input id="search" type="search" placeholder="Try: FGF23, PTH, BMD, osteocyte…"></div>
+        <div class="field"><label for="family">Scale</label><select id="family"><option value="all">All scales</option><option value="systemic">Systemic mineral</option><option value="cell">Cell / signaling</option><option value="integrated">Integrated QSP</option><option value="spatial">Spatial / mechanics</option><option value="clinical">Clinical endpoint</option></select></div>
+        <div class="field"><label for="coverage">Physiology</label><select id="coverage"><option value="all">All physiology</option><option value="mineral">Ca / phosphate</option><option value="hormones">PTH / vitamin D / FGF23</option><option value="kidney">Kidney handling</option><option value="cells">Bone cells</option><option value="matrix">Matrix / mineralization</option><option value="outcomes">BMD / biomarkers</option></select></div>
+        <button class="ghost" id="reset" type="button">Reset view</button>
+      </div>
+      <div class="family-strip" role="group" aria-label="Model scale shortcuts">
+        <button class="family-button is-active" type="button" data-family-filter="all">All models</button>
+        <button class="family-button" type="button" data-family-filter="systemic">Systemic mineral</button>
+        <button class="family-button" type="button" data-family-filter="cell">Cell / signaling</button>
+        <button class="family-button" type="button" data-family-filter="integrated">Integrated QSP</button>
+        <button class="family-button" type="button" data-family-filter="spatial">Spatial / mechanics</button>
+        <button class="family-button" type="button" data-family-filter="clinical">Clinical endpoint</button>
+      </div>
+      <div id="model-grid" class="model-grid"></div>
+    </section>
+
+    <section class="section" id="detail">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Selected model</div>
+          <h2>Physiological interpretation</h2>
+        </div>
+        <p class="micro">The detail view is deliberately framed in clinical physiology, not only equations.</p>
+      </div>
+      <div class="detail-layout">
+        <article id="detail-panel" class="detail-panel" aria-live="polite"></article>
+        <aside id="coverage-panel" class="coverage-panel"></aside>
+      </div>
+    </section>
+
+    <section class="section" id="compare">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Compare across scales</div>
+          <h2>What is actually represented?</h2>
+        </div>
+        <p>Rows use the same physiological dimensions, making it easier to see why no single model answers every clinical question.</p>
+      </div>
+      <div class="compare-table-wrap">
+        <table>
+          <thead><tr><th>Model</th><th>Scale</th><th>Ca / P</th><th>Endocrine</th><th>Bone cells</th><th>Matrix</th><th>Clinical output</th><th>Julia</th></tr></thead>
+          <tbody id="compare-body"></tbody>
+        </table>
+      </div>
+      <div class="matrix-key"><span><i class="matrix-dot full"></i> explicit</span><span><i class="matrix-dot partial"></i> simplified / indirect</span><span><i class="matrix-dot none"></i> absent</span></div>
+    </section>
+
+    <section class="section" id="glossary">
+      <div class="section-heading">
+        <div><div class="eyebrow">Clinical shorthand</div><h2>Terms used in the atlas</h2></div>
+      </div>
+      <dl class="glossary">
+        <div><dt>PTH</dt><dd>Parathyroid hormone; raises serum calcium and promotes renal phosphate loss.</dd></div>
+        <div><dt>Calcitriol</dt><dd>Active vitamin D, 1,25(OH)<sub>2</sub>D; increases intestinal mineral absorption.</dd></div>
+        <div><dt>FGF23</dt><dd>Bone-derived phosphate-regulating hormone; suppresses calcitriol and renal phosphate reabsorption.</dd></div>
+        <div><dt>RANKL / OPG</dt><dd>Coupled signals controlling osteoclast differentiation and survival.</dd></div>
+        <div><dt>BMU</dt><dd>Basic multicellular unit: a local packet of resorption followed by formation.</dd></div>
+        <div><dt>BSAP / CTX</dt><dd>Formation and resorption biomarkers used as indirect signals of bone turnover.</dd></div>
+        <div><dt>BMD</dt><dd>Bone mineral density, usually an organ-level clinical endpoint rather than a cell state.</dd></div>
+        <div><dt>QSP</dt><dd>Quantitative systems pharmacology: physiology plus disease and drug mechanisms.</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <p><strong>Copyright © 2026 azelys/calcium contributors.</strong> Canonical project source: <a href="https://github.com/azelys/calcium" target="_blank" rel="noreferrer">github.com/azelys/calcium</a>.</p>
+    <p>Built from the model inventory and replication notes in <a href="https://github.com/azelys/calcium/blob/main/LITERATURE_REVIEW.md" target="_blank" rel="noreferrer">LITERATURE_REVIEW.md</a>. Original publications remain the source of their respective models.</p>
+    <p>Julia implementations are marked as ready when an equation-level translation and automated tests exist; “literature target” means the model is mapped but not yet replicated in this repository.</p>
+  </footer>
+
+  <script>
+    const models = [
+      {
+        id: 'kroll', title: 'Kroll (2000)', year: '2000', family: 'cell', familyLabel: 'Cell / signaling', status: 'ready', statusLabel: 'Julia ported',
+        question: 'Why can intermittent PTH stimulate formation while continuous PTH favors resorption?',
+        summary: 'A compact temporal model of PTH exposure, precursor transit, osteoblasts, osteoclasts, and IL-6. Its core insight is about signal timing rather than mineral balance.',
+        physiology: ['PTH changes the recruitment and maturation rates of bone cells.', 'The model treats osteoblast-lineage transit and osteoclast activation as delayed processes.', 'Bone-cell output is the endpoint; serum calcium is not modeled explicitly.'],
+        answers: ['Compare intermittent versus continuous PTH schedules.', 'Test whether pulse frequency can reverse the net remodeling balance.', 'Study how delays generate transient anabolic or catabolic windows.'],
+        extensions: ['Reconstruct the original delay-differential equations rather than the current CellML pulse ODE.', 'Add serum calcium, phosphate, and a BMD observation model.', 'Fit exposure-response parameters to biomarker time series.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'partial'},
+        states: '5 core states', math: 'ODE / delayed transit', outputs: 'OB, OC, IL-6, remodeling direction',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/10824426/'], ['CellML artifact', 'https://models.physiomeproject.org/workspace/kroll_2000/rawfile/5686223dbf499c1738659fde4c45c9eddbfd0dc2/kroll_2000.cellml']], julia: 'julia/src/kroll.jl'
+      },
+      {
+        id: 'komarova', title: 'Komarova et al. (2003)', year: '2003', family: 'cell', familyLabel: 'Cell / signaling', status: 'ready', statusLabel: 'Julia ported',
+        question: 'Which local feedbacks stabilize bone mass, and which can create pathological turnover?',
+        summary: 'A minimal power-law osteoblast–osteoclast system with a bone-mass balance. It is the cleanest model for understanding feedback, equilibrium, and sensitivity.',
+        physiology: ['Osteoblasts and osteoclasts regulate one another through effective power-law feedbacks.', 'Bone mass changes according to formation minus resorption.', 'The model is local and well mixed, with no kidney, gut, or circulating hormone compartments.'],
+        answers: ['Find stable and unstable remodeling equilibria.', 'Identify parameter combinations that produce high-turnover states.', 'Explain why a small model can still generate nonlinear bone loss.'],
+        extensions: ['Add RANKL/OPG and osteocyte-derived signals.', 'Introduce patient-specific turnover rates and uncertainty.', 'Couple the local cell system to a mineral-homeostasis model.'],
+        coverage: {mineral:'none', hormones:'none', kidney:'none', cells:'full', matrix:'partial', outcomes:'partial'},
+        states: '3 states', math: 'Power-law ODE', outputs: 'Cell populations, bone mass',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/14499354/']], julia: 'julia/src/komarova.jl'
+      },
+      {
+        id: 'lemaire', title: 'Lemaire et al. (2004)', year: '2004', family: 'cell', familyLabel: 'Cell / signaling', status: 'ready', statusLabel: 'Julia ported',
+        question: 'How do precursor and mature osteoblast/osteoclast populations interact during remodeling?',
+        summary: 'A mass-action cell-population model that makes precursor recruitment and mature-cell removal explicit. It is a useful mechanistic baseline before adding clinical pharmacology.',
+        physiology: ['Precursor pools feed mature osteoblast and osteoclast populations.', 'PTH, estrogen, vitamin D, and senescence can be represented as regulatory inputs.', 'The main output is turnover dynamics, not systemic calcium concentration.'],
+        answers: ['Separate recruitment effects from mature-cell survival effects.', 'Explore hormone withdrawal and pharmacologic perturbations.', 'Test how cell-population coupling produces balanced remodeling.'],
+        extensions: ['Add PK/PD for osteoporosis drugs.', 'Map cell states to BSAP, CTX, and BMD.', 'Add osteocytes, reversal cells, and spatial BMU geometry.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'partial'},
+        states: '3–4 cell states', math: 'Mass-action ODE', outputs: 'OB / OC populations and bone balance',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/15234198/'], ['CellML artifact', 'https://models.physiomeproject.org/exposure/3094a5c3e0810028a9accc3b773cab36/lemaire_tobin_greller_cho_suva_2004.cellml/view']], julia: 'julia/src/lemaire.jl'
+      },
+      {
+        id: 'raposo', title: 'Raposo et al. (2002)', year: '2002', family: 'systemic', familyLabel: 'Systemic mineral', status: 'ready', statusLabel: 'Julia ported',
+        question: 'How do gut, kidney, parathyroid, calcitriol, and exchangeable bone mineral share calcium and phosphate?',
+        summary: 'An organ-level calcium/phosphate homeostasis model. It explains why serum calcium is tightly regulated even when the body is gaining or losing mineral elsewhere.',
+        physiology: ['PTH and calcitriol coordinate gut absorption, renal handling, and bone exchange.', 'Exchangeable bone mineral acts as a buffer for plasma calcium and phosphate.', 'The public CellML artifact is reproducible but its default initialization is not physiologically self-consistent.'],
+        answers: ['Trace a dietary calcium or phosphate perturbation through the body.', 'Study parathyroid feedback and calcitriol control.', 'Separate rapid plasma regulation from slower bone buffering.'],
+        extensions: ['Repair and document the initial-flux imbalance.', 'Add FGF23 and chronic kidney disease progression.', 'Add soft-tissue calcification and clinical laboratory outputs.'],
+        coverage: {mineral:'full', hormones:'full', kidney:'full', cells:'none', matrix:'partial', outcomes:'partial'},
+        states: '11 states', math: 'Nonlinear ODE', outputs: 'Ca, phosphate, PTH, calcitriol, bone exchange',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/12213894/'], ['CellML artifact', 'https://models.cellml.org/workspace/raposo_sobrinho_ferreira_2002/@@rawfile/3dcc0383f02438af3b98d3e74b025c870ff95bf1/raposo_2002.cellml']], julia: 'julia/src/raposo.jl'
+      },
+      {
+        id: 'pivonka', title: 'Pivonka et al. (2008)', year: '2008', family: 'cell', familyLabel: 'Cell / signaling', status: 'ready', statusLabel: 'Julia ported',
+        question: 'Which RANKL/OPG signaling architecture controls osteoclast formation?',
+        summary: 'A mechanistic signaling model centered on TGF-beta, PTH, RANKL, and OPG. It describes how osteoblast-lineage cells can indirectly control osteoclasts.',
+        physiology: ['RANKL promotes osteoclast differentiation; OPG acts as a decoy receptor.', 'TGF-beta and PTH alter osteoblast and osteoclast lineage behavior.', 'Bone volume changes indirectly through the balance of active osteoblasts and osteoclasts.'],
+        answers: ['Compare alternative ligand-expression assumptions.', 'Test virtual changes in RANKL, OPG, and PTH signaling.', 'Explain why antiresorptive drugs can act without directly changing calcium intake.'],
+        extensions: ['Add osteocyte-derived RANKL and sclerostin/Wnt.', 'Add denosumab pharmacology and antibody exposure.', 'Localize the signaling to a spatial BMU.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'partial'},
+        states: '4 core states plus algebraic signals', math: 'Hill / mass-action ODE', outputs: 'OB, OC, RANKL, OPG, bone volume',
+        sources: [['Publication', 'https://doi.org/10.1016/j.bone.2008.03.025'], ['CellML artifact', 'https://models.physiomeproject.org/workspace/pivonka_zimak_smith_gardiner_dunstan_sims_martin_mundy_2008/rawfile/9848d85152c7ff7bae01d8ed69a9464992d8acf5/pivonka_2008_matlab.cellml']], julia: 'julia/src/pivonka.jl'
+      },
+      {
+        id: 'peterson', title: 'Peterson & Riggs (2010)', year: '2010', family: 'integrated', familyLabel: 'Integrated QSP', status: 'ready', statusLabel: 'Julia variant ported',
+        question: 'How do endocrine calcium regulation and bone remodeling respond together to disease and treatment?',
+        summary: 'The central integrated QSP framework: systemic calcium/phosphate physiology is coupled to bone-cell turnover and endocrine feedback.',
+        physiology: ['Circulating PTH, calcitriol, calcium, and phosphate are linked to gut, kidney, parathyroid, and bone compartments.', 'Bone remodeling is represented more simply than in a dedicated BMU model.', 'The local R code is a later 32-state, Khurana-oriented variant rather than a pristine copy of the paper.'],
+        answers: ['Explore hypoparathyroidism, renal insufficiency, and PTH schedules.', 'Connect clinical laboratory values to bone-cell mechanisms.', 'Provide a scaffold for disease and drug simulations.'],
+        extensions: ['Reconcile source equations and dose labels.', 'Add explicit FGF23 and a modern BMD layer.', 'Quantify parameter identifiability before fitting patients.'],
+        coverage: {mineral:'full', hormones:'full', kidney:'full', cells:'full', matrix:'partial', outcomes:'full'},
+        states: '28 published; 32 in local variant', math: 'Large nonlinear ODE with events', outputs: 'Ca, P, PTH, calcitriol, turnover, urinary Ca',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/19732857/'], ['Canonical OpenBoneMin source', 'https://github.com/metrumresearchgroup/OpenBoneMin']], julia: 'julia/src/peterson_khurana.jl'
+      },
+      {
+        id: 'peterson-bmd', title: 'Peterson et al. BMD extension (2012)', year: '2012', family: 'clinical', familyLabel: 'Clinical endpoint', status: 'ready', statusLabel: 'Julia extension added',
+        question: 'How do formation and resorption biomarkers accumulate into a nonlinear BMD trajectory?',
+        summary: 'An indirect observation model that converts formation and resorption signals into lumbar-spine BMD. It is an endpoint bridge, not a new cell mechanism.',
+        physiology: ['BSAP represents osteoblast formation activity; CTx represents osteoclast resorption activity.', 'BMD integrates these competing signals over months to years.', 'The local Julia implementation uses OB and OC proxies from the integrated model.'],
+        answers: ['Translate short-term turnover changes into long-term BMD.', 'Compare anabolic and antiresorptive treatment trajectories.', 'Ask whether biomarker changes predict site-specific density.'],
+        extensions: ['Use multiple skeletal sites and fracture-risk outputs.', 'Calibrate the observation layer to longitudinal patient data.', 'Replace proxy biomarkers with measured assay models.'],
+        coverage: {mineral:'partial', hormones:'partial', kidney:'none', cells:'partial', matrix:'partial', outcomes:'full'},
+        states: '1 added BMD state', math: 'Indirect nonlinear ODE', outputs: 'Lumbar-spine BMD',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/23835796/'], ['Open article', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3600731/']], julia: 'julia/src/peterson_khurana.jl'
+      },
+      {
+        id: 'khurana', title: 'Khurana et al. (2019)', year: '2019', family: 'clinical', familyLabel: 'Clinical endpoint', status: 'ready', statusLabel: 'Local variant ported',
+        question: 'How do PTH(1–84) schedules affect calcium control and urinary calcium in hypoparathyroidism?',
+        summary: 'A disease and intervention adaptation of the Peterson framework with PTH dosing, oral vitamin D, and urinary calcium outputs.',
+        physiology: ['Hypoparathyroidism changes the PTH control input and mineral handling.', 'PTH replacement is evaluated against serum and urinary calcium.', 'The local source contains dosing conventions that require reconciliation with the paper.'],
+        answers: ['Compare replacement schedules and dose timing.', 'Study serum calcium stability versus hypercalciuria risk.', 'Explore how calcitriol and oral calcium interact with PTH therapy.'],
+        extensions: ['Add adherence, titration, and patient variability.', 'Use a verified PTH(1–84) PK/PD module.', 'Connect urinary calcium to renal outcomes and bone density.'],
+        coverage: {mineral:'full', hormones:'full', kidney:'full', cells:'full', matrix:'partial', outcomes:'full'},
+        states: '32 local states', math: 'Large nonlinear ODE with dose events', outputs: 'Serum Ca, PTH, urinary Ca, turnover',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/30350311/'], ['Local source model', 'https://github.com/azelys/calcium']], julia: 'julia/src/peterson_khurana.jl'
+      },
+      {
+        id: 'lemaire-cox', title: 'Lemaire & Cox (2019)', year: '2019', family: 'clinical', familyLabel: 'Clinical endpoint', status: 'target', statusLabel: 'Literature target',
+        question: 'Which sequences and combinations of osteoporosis drugs produce durable remodeling benefit?',
+        summary: 'A treatment-oriented extension of the Lemaire lineage with teriparatide, denosumab, and romosozumab mechanisms and literature-based checks.',
+        physiology: ['Anabolic and antiresorptive therapies act on different stages of the remodeling cycle.', 'Treatment order matters because formation and resorption have different time courses.', 'The model is primarily bone-cell and drug focused, not systemic mineral homeostasis.'],
+        answers: ['Compare therapy sequences and combination strategies.', 'Test rebound or carry-over effects after treatment changes.', 'Relate turnover markers to BMD over clinical time scales.'],
+        extensions: ['Add calcium/phosphate/PTH safety constraints.', 'Calibrate inter-individual PK/PD variability.', 'Include fracture-risk and treatment-adherence endpoints.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'full'},
+        states: 'Large treatment model', math: 'PK/PD plus cell ODEs', outputs: 'Turnover markers and BMD',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/30460589/']], julia: null
+      },
+      {
+        id: 'jorg', title: 'Jörg et al. (2022)', year: '2022', family: 'clinical', familyLabel: 'Clinical endpoint', status: 'target', statusLabel: 'Literature target',
+        question: 'How do multiple osteoporosis drug mechanisms interact over long time scales?',
+        summary: 'An open multi-drug osteoporosis framework for denosumab, romosozumab, bisphosphonates, and teriparatide.',
+        physiology: ['Antiresorptive, anabolic, and dual-action therapies are represented as distinct mechanisms.', 'The clinically relevant output is the trajectory after starting, switching, or stopping treatment.', 'Mineral homeostasis is secondary to remodeling and density.'],
+        answers: ['Compare drug classes and treatment sequences.', 'Explore long-term rebound and persistence.', 'Generate hypotheses for combination therapy.'],
+        extensions: ['Couple drug effects to Ca/P/PTH physiology.', 'Add site-specific BMD and fracture outcomes.', 'Assess uncertainty and treatment resistance.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'full'},
+        states: 'Multi-module ODE', math: 'PK/PD plus remodeling ODEs', outputs: 'BMD and turnover',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/35942681/']], julia: null
+      },
+      {
+        id: 'granjon', title: 'Granjon et al. (2017)', year: '2017', family: 'systemic', familyLabel: 'Systemic mineral', status: 'ready', statusLabel: 'Julia ported',
+        question: 'How does FGF23 coordinate renal, intestinal, skeletal, and intracellular calcium/phosphate flux?',
+        summary: 'A detailed rat whole-body mineral model with FGF23, vitamin D3, CaSR regulation, renal handling, bone mineral pools, and chemical complexes.',
+        physiology: ['FGF23 links bone-derived endocrine signaling to renal phosphate handling and calcitriol.', 'Bone is represented as mineral pools rather than explicit OB/OC populations.', 'The public CaPO4Sim implementation makes this one of the most reproducible systemic models.'],
+        answers: ['Trace phosphate and calcium disturbances through the kidney and bone.', 'Study vitamin D, hyperphosphatemia, hypoparathyroidism, and FGF23 effects.', 'Test mineral interventions and disease-state initial conditions.'],
+        extensions: ['Calibrate from rat to human physiology.', 'Add explicit bone-cell remodeling and soft-tissue calcification.', 'Add drug PK/PD and CKD progression.'],
+        coverage: {mineral:'full', hormones:'full', kidney:'full', cells:'none', matrix:'partial', outcomes:'partial'},
+        states: '22 states', math: 'Nonlinear ODE with chemical pools', outputs: 'Ca, phosphate, PTH, D3, FGF23, mineral pools',
+        sources: [['Publication', 'https://doi.org/10.1152/ajprenal.00271.2017'], ['CaPO4Sim code', 'https://github.com/DivadNojnarg/CaPO4Sim']], julia: 'julia/src/granjon.jl'
+      },
+      {
+        id: 'gaweda', title: 'Gaweda et al. (2021)', year: '2021', family: 'systemic', familyLabel: 'Systemic mineral', status: 'target', statusLabel: 'Literature target',
+        question: 'Which coupled mineral and FGF23 mechanisms reproduce CKD-MBD trajectories?',
+        summary: 'A CKD-focused QSP model that emphasizes declining renal function, FGF23, PTH, vitamin D, and soft-tissue mineral balance.',
+        physiology: ['Reduced GFR changes phosphate excretion and endocrine compensation.', 'FGF23, PTH, and calcitriol evolve together rather than as isolated biomarkers.', 'The model is designed for population-level disease calibration.'],
+        answers: ['Explain CKD-associated mineral and bone disorder trajectories.', 'Compare phosphate handling, binders, calcimimetics, and dialysis scenarios.', 'Identify which biomarkers constrain the disease model.'],
+        extensions: ['Add explicit bone-cell and BMD modules.', 'Reproduce the published population calibration.', 'Add vascular calcification and patient-level Bayesian inference.'],
+        coverage: {mineral:'full', hormones:'full', kidney:'full', cells:'partial', matrix:'partial', outcomes:'partial'},
+        states: 'QSP / population model', math: 'ODE with disease progression', outputs: 'FGF23, PTH, Ca, P, renal and soft-tissue outputs',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/33308018/'], ['Open article', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11163996/']], julia: null
+      },
+      {
+        id: 'ruiz-integrated', title: 'Ruiz-Lozano / integrated Ca–P–BCPM (2024–2026)', year: '2024–2026', family: 'integrated', familyLabel: 'Integrated QSP', status: 'target', statusLabel: 'Highest-value next target',
+        question: 'How do variable PTH, Ca/P availability, bone cells, mechanics, and mineralization jointly determine bone density?',
+        summary: 'The newest bridge in this map: systemic Peterson–Riggs mineral physiology is coupled to a mechanistic bone-cell population model and a revised mineralization algorithm.',
+        physiology: ['Dynamic PTH is an input to a five-cell bone-remodeling system.', 'Plasma, marrow, and bone-matrix minerals exchange bidirectionally.', 'The framework explicitly tests vitamin D deficiency, CKD, HPT, and dietary interventions.'],
+        answers: ['Ask how renal or dietary mineral changes alter bone remodeling.', 'Separate serum homeostasis from matrix mineralization and density.', 'Test whether a cell-level bone model improves clinical disease predictions.'],
+        extensions: ['Replicate the queue-based mineralization algorithm.', 'Add FGF23 and explicit drug PK/PD.', 'Validate the local-to-skeleton mapping against site-specific BMD.'],
+        coverage: {mineral:'full', hormones:'full', kidney:'full', cells:'full', matrix:'full', outcomes:'full'},
+        states: 'Systemic model + 5-cell BCPM', math: 'Coupled ODE / event algorithm', outputs: 'Ca, P, PTH, cell states, mineralization, density',
+        sources: [['BCPM publication', 'https://pubmed.ncbi.nlm.nih.gov/38700787/'], ['Integrated 2026 article', 'https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1800350/full']], julia: null
+      },
+      {
+        id: 'ryser', title: 'Ryser et al. (2009–2010)', year: '2009–2010', family: 'spatial', familyLabel: 'Spatial / mechanics', status: 'target', statusLabel: 'Literature target',
+        question: 'How do diffusion, cell movement, and time delays create a spatial remodeling unit?',
+        summary: 'Spatial BMU models that move beyond a well-mixed compartment and represent the geometry of resorption and formation.',
+        physiology: ['RANKL/OPG signals diffuse through a spatially organized remodeling unit.', 'Cell movement and delayed differentiation create a resorption-to-formation sequence.', 'The output is local BMU structure, not only whole-body calcium.'],
+        answers: ['Explain why spatial organization changes remodeling dynamics.', 'Study signal gradients and cell-front motion.', 'Test how local delays affect formation completion.'],
+        extensions: ['Drive the BMU with systemic PTH, Ca/P, and FGF23 inputs.', 'Add mechanics and osteocyte signaling.', 'Map local BMU activity to BMD and fracture risk.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'full', outcomes:'partial'},
+        states: 'Spatial cell fields', math: 'PDE / reaction-diffusion', outputs: 'Cell density, signal gradients, BMU geometry',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/19063683/']], julia: null
+      },
+      {
+        id: 'buenzli', title: 'Buenzli / Pivonka BMU models', year: '2010s', family: 'spatial', familyLabel: 'Spatial / mechanics', status: 'target', statusLabel: 'Literature target',
+        question: 'How do spatial refilling, cell distributions, and osteocyte generation shape formation?',
+        summary: 'A family of spatial remodeling models focused on BMU geometry, refilling, and the relationship between local cell activity and tissue-level formation.',
+        physiology: ['Osteoclast excavation is followed by osteoblast refilling.', 'Osteocytes and local geometry provide context that a well-mixed ODE cannot represent.', 'The model scale is tissue-local rather than systemic.'],
+        answers: ['Study formation lag and refilling efficiency.', 'Relate local cell distributions to tissue architecture.', 'Explore how geometry changes apparent turnover.'],
+        extensions: ['Couple mechanical loading and systemic endocrine inputs.', 'Add mineral availability and matrix quality.', 'Validate against histomorphometry and micro-CT.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'full', outcomes:'partial'},
+        states: 'Spatial BMU fields', math: 'PDE / moving-front models', outputs: 'BMU geometry, refilling, local formation',
+        sources: [['Project literature map', 'https://github.com/azelys/calcium']], julia: null
+      },
+      {
+        id: 'vbone', title: 'V-Bone (2020)', year: '2020', family: 'spatial', familyLabel: 'Spatial / mechanics', status: 'target', statusLabel: 'Literature target',
+        question: 'How do mechanics and biochemical signals interact in a spatial remodeling environment?',
+        summary: 'A mechano-biochemical simulation platform with reaction–diffusion signals and cell-genesis/apoptosis rules.',
+        physiology: ['Mechanical stimulus is an active input to remodeling.', 'Biochemical gradients influence cellular activation and death.', 'The model is closer to tissue biomechanics than to organ-level mineral homeostasis.'],
+        answers: ['Compare loaded and unloaded bone regions.', 'Study how signal diffusion and mechanics organize remodeling.', 'Generate hypotheses about local adaptation and damage.'],
+        extensions: ['Add PTH, FGF23, and mineral fluxes from systemic models.', 'Connect spatial output to whole-bone BMD.', 'Add fracture and fatigue endpoints.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'full', outcomes:'partial'},
+        states: 'Spatial platform', math: 'Reaction-diffusion / cell rules', outputs: 'Spatial remodeling and mechanical adaptation',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/32181336/']], julia: null
+      },
+      {
+        id: 'osteocyte', title: 'Osteocyte-centered model (2013)', year: '2013', family: 'spatial', familyLabel: 'Spatial / mechanics', status: 'target', statusLabel: 'Literature target',
+        question: 'How do osteocytes translate mechanical and hormonal information into formation or resorption?',
+        summary: 'A signaling model centered on sclerostin, Wnt-related formation control, and osteocyte regulation of osteoclast activity.',
+        physiology: ['Osteocytes act as sensors embedded throughout the matrix.', 'Sclerostin restrains osteoblast activity through Wnt signaling.', 'Osteocyte signals can alter osteoclast recruitment through RANKL-related pathways.'],
+        answers: ['Explain why osteocytes are central to mechanoadaptation.', 'Test sclerostin inhibition as a formation intervention.', 'Link local sensing to cell-population changes.'],
+        extensions: ['Add realistic mechanical loading fields.', 'Couple to PTH, FGF23, and bone mineral flux.', 'Add romosozumab and anti-sclerostin PK/PD.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'partial'},
+        states: 'Signaling / cell model', math: 'ODE / signaling network', outputs: 'Sclerostin, Wnt, RANKL, cell activity',
+        sources: [['Publication', 'https://pubmed.ncbi.nlm.nih.gov/23717504/']], julia: null
+      },
+      {
+        id: 'nelson', title: 'Nelson et al. (2026)', year: '2026', family: 'clinical', familyLabel: 'Clinical endpoint', status: 'ready', statusLabel: 'Julia ported',
+        question: 'How does estrogen loss after surgical menopause propagate into cell dynamics and spine-BMD loss?',
+        summary: 'A public seven-state ODE model that imposes natural or surgical estrogen trajectories and predicts bone-cell populations, sclerostin, and normalized BMD.',
+        physiology: ['Estrogen changes regulate osteoclast and osteocyte-related terms.', 'The model includes pre- and mature bone-cell populations plus sclerostin.', 'It reaches a clinical density endpoint but does not model systemic calcium/phosphate homeostasis.'],
+        answers: ['Compare natural and surgical menopause trajectories.', 'Test the timing and duration of post-surgical effects.', 'Relate estrogen decline to long-term spine-BMD loss.'],
+        extensions: ['Add calcium, phosphate, PTH, calcitriol, and FGF23.', 'Add skeletal-site heterogeneity and fracture risk.', 'Calibrate patient-specific estrogen and BMD trajectories.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'full'},
+        states: '7 states', math: 'ODE with estrogen forcing', outputs: 'OB, OC, osteocytes, sclerostin, BMD',
+        sources: [['Public code', 'https://github.com/ashleefv/SurgicalMenopauseBone'], ['Publication', 'https://doi.org/10.3389/fsysb.2026.1729027']], julia: 'julia/src/nelson.jl'
+      },
+      {
+        id: 'garzon', title: 'Garzón-Alvarado et al. (2026)', year: '2026', family: 'spatial', familyLabel: 'Spatial / mechanics', status: 'target', statusLabel: 'Literature target',
+        question: 'How might remodeling interact with fatigue damage under repeated mechanical loading?',
+        summary: 'A Komarova-type remodeling model coupled to fatigue-damage accumulation under prescribed loading.',
+        physiology: ['Bone formation and resorption change the local structural state.', 'Repeated mechanical loading accumulates damage through a fatigue rule.', 'The model is hypothesis-generating and local rather than a validated fracture-risk tool.'],
+        answers: ['Explore how turnover and mechanical damage interact.', 'Compare loading histories and remodeling responses.', 'Generate hypotheses about fragile high-turnover bone.'],
+        extensions: ['Add osteocytes and adaptive mechanosensing.', 'Couple damage to calcium/PTH/FGF23 physiology.', 'Validate against fatigue and fracture data.'],
+        coverage: {mineral:'none', hormones:'none', kidney:'none', cells:'full', matrix:'full', outcomes:'partial'},
+        states: 'Cell model + damage state', math: 'ODE / damage accumulation', outputs: 'Bone mass, damage, remodeling response',
+        sources: [['Publication', 'https://link.springer.com/article/10.1007/s10441-026-09522-x']], julia: null
+      },
+      {
+        id: 'rattsev', title: 'Rattsev et al. preprint (2026)', year: '2026', family: 'clinical', familyLabel: 'Clinical endpoint', status: 'target', statusLabel: 'Preprint target',
+        question: 'Can mechanistic bone modeling explain genetic variation in postmenopausal bone loss and drug response?',
+        summary: 'A large ODE framework with estrogen, RANK/RANKL/OPG, Wnt, TGF-beta, BMD, drugs, and virtual genetic variants.',
+        physiology: ['Postmenopausal estrogen loss is connected to cell signaling and density.', 'Genetic variants perturb pathway parameters rather than representing separate diseases.', 'The model is designed for personalized virtual subjects, but remains a preprint.'],
+        answers: ['Explore personalized postmenopausal trajectories.', 'Compare genetic perturbations and drug response.', 'Identify mechanisms that could explain heterogeneity.'],
+        extensions: ['Release and independently reproduce the calibration data/code.', 'Add systemic Ca/P/PTH safety physiology.', 'Test prospective validation rather than only virtual cohorts.'],
+        coverage: {mineral:'none', hormones:'partial', kidney:'none', cells:'full', matrix:'partial', outcomes:'full'},
+        states: '27 ODE states', math: 'Mechanistic ODE / virtual subjects', outputs: 'BMD, cell signals, drug response',
+        sources: [['Preprint', 'https://doi.org/10.64898/2026.06.04.26354968']], julia: null
+      }
+    ];
+
+    const coverageLabels = {
+      mineral: 'Ca / phosphate homeostasis', hormones: 'PTH / vitamin D / FGF23', kidney: 'Kidney handling',
+      cells: 'OB / OC / osteocyte biology', matrix: 'Matrix, mineralization, mechanics', outcomes: 'BMD / biomarkers'
+    };
+    const state = { selected: 'peterson', family: 'all', coverage: 'all', query: '' };
+    const $ = (id) => document.getElementById(id);
+
+    function statusClass(status) { return status === 'ready' ? 'ready' : 'target'; }
+    function coverageMatch(model, key) { return key === 'all' || model.coverage[key] !== 'none'; }
+    function textMatch(model, query) {
+      if (!query) return true;
+      const text = [model.title, model.familyLabel, model.question, model.summary, ...model.physiology, ...model.answers, ...model.extensions].join(' ').toLowerCase();
+      return text.includes(query.toLowerCase());
+    }
+    function visibleModels() {
+      return models.filter(m => (state.family === 'all' || m.family === state.family) && coverageMatch(m, state.coverage) && textMatch(m, state.query));
+    }
+    function selectModel(id, move = true) {
+      if (!models.some(m => m.id === id)) return;
+      state.selected = id;
+      render();
+      if (move) $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function renderCards() {
+      const list = visibleModels();
+      $('result-count').textContent = `${list.length} model${list.length === 1 ? '' : 's'} shown`;
+      $('model-grid').innerHTML = list.length ? list.map(m => `
+        <button class="model-card ${m.id === state.selected ? 'is-selected' : ''}" data-model="${m.id}" data-family="${m.family}" type="button" aria-pressed="${m.id === state.selected}">
+          <span class="card-top"><strong>${m.title}</strong><span class="card-year">${m.year}</span></span>
+          <span class="card-family">${m.familyLabel}</span>
+          <span class="card-question">${m.question}</span>
+          <span class="card-footer"><span class="tag ${statusClass(m.status)}">${m.statusLabel}</span><span class="arrow-label">Explore →</span></span>
+        </button>`).join('') : '<div class="empty">No models match those filters. Try resetting the view or choosing a broader physiological compartment.</div>';
+      $('model-grid').querySelectorAll('[data-model]').forEach(el => el.addEventListener('click', () => selectModel(el.dataset.model)));
+    }
+    function renderDetail() {
+      const m = models.find(model => model.id === state.selected) || models[0];
+      $('detail-panel').innerHTML = `
+        <div class="detail-kicker">${m.familyLabel} · ${m.year}</div>
+        <h3 class="detail-title">${m.title}</h3>
+        <p class="detail-summary">${m.summary}</p>
+        <div class="detail-meta"><span class="tag ${statusClass(m.status)}">${m.statusLabel}</span><span class="tag">${m.states}</span><span class="tag">${m.math}</span><span class="tag">Outputs: ${m.outputs}</span></div>
+        <div class="detail-columns">
+          <div><h3>Physiological connection</h3><ul>${m.physiology.map(x => `<li>${x}</li>`).join('')}</ul></div>
+          <div><h3>Questions it can answer</h3><ul>${m.answers.map(x => `<li>${x}</li>`).join('')}</ul></div>
+          <div><h3>What to build on top</h3><ul>${m.extensions.map(x => `<li>${x}</li>`).join('')}</ul></div>
+          <div><h3>Interpretation</h3><p class="micro">${m.family === 'systemic' ? 'Read this as an organ-level regulation model: it is strongest for serum chemistry and endocrine feedback.' : m.family === 'cell' ? 'Read this as a mechanistic remodeling model: it is strongest for cell recruitment, signaling, and turnover dynamics.' : m.family === 'spatial' ? 'Read this as a local tissue model: it is strongest for geometry, mechanics, and signal gradients.' : 'Read this as an integrated or clinical model: it is strongest when a mechanistic perturbation must be connected to a measurable endpoint.'}</p></div>
+        </div>
+        <div class="detail-links">${m.sources.map(([label, url]) => `<a href="${url}" target="_blank" rel="noreferrer">${label} ↗</a>`).join('')}${m.julia ? `<a href="https://github.com/azelys/calcium/blob/main/${m.julia}" target="_blank" rel="noreferrer">Julia source ↗</a>` : ''}</div>`;
+      $('coverage-panel').innerHTML = `<h3>Physiology coverage</h3><div class="coverage-list">${Object.entries(coverageLabels).map(([key, label]) => `<div class="coverage-row"><span class="coverage-name">${label}</span><span class="coverage-value ${m.coverage[key]}">${m.coverage[key] === 'full' ? 'Explicit' : m.coverage[key] === 'partial' ? 'Indirect' : 'Absent'}</span></div>`).join('')}</div>`;
+    }
+    function matrixCell(value) { return `<span class="matrix-dot ${value}" title="${value}"></span>`; }
+    function renderTable() {
+      $('compare-body').innerHTML = models.map(m => `<tr data-model="${m.id}"><td><strong>${m.title}</strong></td><td>${m.familyLabel}</td><td>${matrixCell(m.coverage.mineral)}</td><td>${matrixCell(m.coverage.hormones)}</td><td>${matrixCell(m.coverage.cells)}</td><td>${matrixCell(m.coverage.matrix)}</td><td>${matrixCell(m.coverage.outcomes)}</td><td>${m.status === 'ready' ? '✓' : '—'}</td></tr>`).join('');
+      $('compare-body').querySelectorAll('[data-model]').forEach(el => el.addEventListener('click', () => selectModel(el.dataset.model)));
+    }
+    function renderFamilyButtons() {
+      document.querySelectorAll('[data-family-filter]').forEach(btn => btn.classList.toggle('is-active', btn.dataset.familyFilter === state.family));
+    }
+    function render() {
+      renderCards(); renderDetail(); renderTable(); renderFamilyButtons();
+      document.querySelectorAll('.map-node').forEach(btn => btn.classList.toggle('is-active', btn.dataset.coverage === state.coverage && state.coverage !== 'all'));
+    }
+
+    $('search').addEventListener('input', e => { state.query = e.target.value.trim(); renderCards(); });
+    $('family').addEventListener('change', e => { state.family = e.target.value; renderFamilyButtons(); renderCards(); });
+    $('coverage').addEventListener('change', e => { state.coverage = e.target.value; render(); });
+    $('reset').addEventListener('click', () => { state.family = 'all'; state.coverage = 'all'; state.query = ''; $('search').value = ''; $('family').value = 'all'; $('coverage').value = 'all'; render(); });
+    document.querySelectorAll('[data-family-filter]').forEach(btn => btn.addEventListener('click', () => { state.family = btn.dataset.familyFilter; $('family').value = state.family; renderCards(); renderFamilyButtons(); }));
+    document.querySelectorAll('.map-node').forEach(btn => btn.addEventListener('click', () => { state.coverage = state.coverage === btn.dataset.coverage ? 'all' : btn.dataset.coverage; $('coverage').value = state.coverage; render(); $('models').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+    render();
+  </script>
+</body>
+</html>
