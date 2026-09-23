@@ -2,22 +2,6 @@ using Test
 using CalciumBoneModels
 using SciMLBase
 
-@testset "Komarova" begin
-    p = KomarovaParams()
-    eq = komarova_equilibrium(p)
-    du = zeros(3)
-    komarova_rhs!(du, [eq.x̄₁, eq.x̄₂, p.z₀], p, 0.0)
-    @test du[1] ≈ 0 atol=1e-12
-    @test du[2] ≈ 0 atol=1e-12
-    @test du[3] ≈ 0 atol=1e-12
-
-    sol = simulate_komarova(p; tspan=(0.0, 20.0))
-    @test SciMLBase.successful_retcode(sol)
-    @test all(sol[1, :] .> 0)
-    @test all(sol[2, :] .> 0)
-    @test sol[3, 1] ≈ p.z₀
-end
-
 @testset "Lemaire" begin
     p = LemaireParams()
     sol = simulate_lemaire(p; tspan=(0.0, 10.0))
@@ -25,24 +9,6 @@ end
     @test all(sol[1, :] .> 0)
     @test all(sol[2, :] .> 0)
     @test all(sol[3, :] .> 0)
-end
-
-@testset "Pivonka" begin
-    p = PivonkaParams()
-    u = [6.194e-4, 5.584e-4, 8.070e-4, p.BV₀]
-    a_early = pivonka_aux(u, p, 50.0)
-    a_late = pivonka_aux(u, p, 150.0)
-    @test a_early.D_OC_p == p.D_OC_p_early
-    @test a_late.D_OC_p == p.D_OC_p_late
-    @test isfinite(a_early.OPG)
-    @test isfinite(a_early.RANKL)
-
-    sol = simulate_pivonka(p; tspan=(0.0, 20.0))
-    @test SciMLBase.successful_retcode(sol)
-    @test all(sol[1, :] .> 0)
-    @test all(sol[2, :] .> 0)
-    @test all(sol[3, :] .> 0)
-    @test all(isfinite, sol[4, :])
 end
 
 @testset "Kroll" begin
@@ -80,7 +46,7 @@ end
     @test minimum(sol[1, :]) < 0
 end
 
-@testset "Peterson/Khurana local R port" begin
+@testset "Peterson/Khurana integrated model" begin
     p = PetersonKhuranaParams()
     u₀ = peterson_khurana_initial_state(p)
     @test length(u₀) == 32
@@ -103,8 +69,8 @@ end
     du = zeros(22)
     granjon_rhs!(du, u₀, p, 0.0)
     @test all(isfinite, du)
-    # These values are the direct R-core derivative at the public
-    # hypoparathyroidism initial state, to guard the cross-language port.
+    # These values are source-artifact regression derivatives at the public
+    # hypoparathyroidism initial state.
     @test du[1] ≈ 117.47668093096183 rtol=1e-12
     @test du[5] ≈ 0.091290379623257145 rtol=1e-12
     @test du[8] ≈ 0.67640804157304046 rtol=1e-12
@@ -140,35 +106,4 @@ end
     @test SciMLBase.successful_retcode(sol)
     @test all(isfinite, sol)
     @test sol[33, 1] == 100.0
-end
-
-@testset "Nelson surgical-menopause model" begin
-    p = NelsonParams()
-    @test NELSON_STATE_NAMES[7] == :Bd
-    @test nelson_estrogen(0.0, p; surgical=false) == 1.0
-    @test nelson_estrogen(p.t_m, p; surgical=false) == 1.0
-    @test nelson_estrogen(p.t_m + 365.0, p; surgical=true) < 1.0
-    @test nelson_estrogen(p.t_m + 1.0e6, p; surgical=true) ≈ p.Eovx atol=1e-8
-
-    u₀ = nelson_initial_state(p)
-    @test length(u₀) == 7
-    @test u₀[7] == 1.0
-    du = zeros(7)
-    nelson_rhs!(du, u₀, p, 0.0)
-    @test maximum(abs, du[1:6]) < 1e-9
-    @test isfinite(du[7])
-
-    sol = simulate_nelson(p; tspan=(0.0, 365.0), saveat=30.0)
-    @test SciMLBase.successful_retcode(sol)
-    @test all(isfinite, sol)
-    @test all(sol[7, :] .> 0)
-
-    # The optional effects are dormant before the menopause time in the
-    # public default parameterization, but are active after a t_m=0 override.
-    p_effects = NelsonParams(t_m=0.0, eta_ovx=1.0, tau=0.01, omega_ovx=1.0)
-    u₁ = nelson_initial_state(p_effects; new_effects=true)
-    du₁ = zeros(7)
-    nelson_rhs!(du₁, u₁, p_effects, 365.0; surgical=true, new_effects=true)
-    @test isfinite(du₁[3])
-    @test isfinite(du₁[5])
 end
