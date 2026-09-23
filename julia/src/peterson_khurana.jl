@@ -1,10 +1,9 @@
-"""The local 32-state Peterson/Riggs–Khurana-style integrated model.
+"""A 32-state Peterson/Riggs–Khurana-style integrated model.
 
-The R source in this repository is the authoritative source for this port.
-This file deliberately preserves the current equations, including the
-calcitriol balance term `+J14`, the hard-coded 99% parathyroid-loss target,
-and the source's PTH/dose naming. A repaired model should be added as a
-separate variant after numerical regression tests are in place.
+This source-faithful Julia variant preserves the currently documented
+equations, including the calcitriol balance term `+J14`, the hard-coded 99%
+parathyroid-loss target, and the PTH/dose naming. A repaired model belongs in
+a separate variant after numerical regression tests are in place.
 """
 
 const _PETERSON_KHURANA_BASE = (
@@ -121,7 +120,7 @@ const _PETERSON_KHURANA_BASE = (
     TERIKA=16.4,
 )
 
-"""Container for the local R-model parameters.
+"""Container for the 32-state variant parameters.
 
 The fields are stored as a named tuple so source parameter names remain
 visible (`p.k1`, `p.FracJ14`, and so on), while callers can override any
@@ -449,7 +448,7 @@ function simulate_peterson_khurana(p::PetersonKhuranaParams=PetersonKhuranaParam
     # Disable automatic differentiation: the source equations contain
     # fractional powers, and trial stages can temporarily cross zero even
     # when the accepted trajectory remains in the real positive domain.
-    solver = Rodas5P(autodiff=false)
+    solver = Rodas5P(autodiff=AutoFiniteDiff())
     sol = callback === nothing ? solve(prob, solver; solve_kwargs...) :
           solve(prob, solver; callback=callback, solve_kwargs...)
     SciMLBase.successful_retcode(sol) ||
@@ -551,7 +550,7 @@ function simulate_peterson_khurana_bmd(p::PetersonKhuranaParams=PetersonKhuranaP
                                                    (1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13,
                                                     14, 15, 16, 17, 18, 19, 20, 21, 22,
                                                     23, 24, 27, 28, 29, 33)))
-    solver = Rodas5P(autodiff=false)
+    solver = Rodas5P(autodiff=AutoFiniteDiff())
     sol = callback === nothing ? solve(prob, solver; solve_kwargs...) :
           solve(prob, solver; callback=callback, solve_kwargs...)
     SciMLBase.successful_retcode(sol) ||

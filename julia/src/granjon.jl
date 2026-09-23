@@ -34,8 +34,8 @@ Base.getproperty(p::GranjonParams, s::Symbol) =
     s === :values ? getfield(p, :values) : getproperty(getfield(p, :values), s)
 
 const _GRANJON_FIXED = (
-    # Parameters omitted from cap_fixed_parameters.R because they are disease
-    # inputs in the app, not immutable constants in the core.
+    # These values are disease inputs in the public model artifact rather than
+    # immutable constants in its core parameterization.
     k_prod_PTHg = 4.192,
     D3_inact = 2.5e-5,
     Vp = 1e-2,
@@ -432,7 +432,7 @@ function simulate_granjon(; case::Symbol = :hypopara, u0 = granjon_initial_state
                           p::GranjonParams = GranjonParams(), tspan = (0.0, 1440.0),
                           saveat = nothing, kwargs...)
     prob = granjon_problem(; case, u0, p, tspan)
-    alg = get(kwargs, :alg, Rodas5P(autodiff = false))
+    alg = get(kwargs, :alg, Rodas5P(autodiff=AutoFiniteDiff()))
     solver_kwargs = (; (k => v for (k, v) in pairs(kwargs) if k != :alg)...)
     solve_kwargs = (; (k => v for (k, v) in pairs(solver_kwargs) if k != :dtmax)...,
                     dtmax = get(solver_kwargs, :dtmax, 1.0))
